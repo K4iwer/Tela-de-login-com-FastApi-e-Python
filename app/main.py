@@ -1,13 +1,15 @@
 from fastapi import HTTPException, Depends, status
 from fastapi import FastAPI
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 import app.schemas as schemas
-import app.crud as crud
+import Atividade1.app.services as services
 from app.database import get_db
-
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
+from database import init_db
+
+if __name__ == "__main__":
+    init_db()
+    print("Banco de dados inicializado!")
 
 app = FastAPI()
 
@@ -23,13 +25,11 @@ def get_config():
 
 # endpoint para inserir dados de registro
 @app.post("/register", response_model=schemas.UserSchema)
-def userRegister(registro: schemas.RegistroCreate, db: Session = Depends(get_db)):
+def userRegister(registro: schemas.RegistroCreate):
     try:
-        return crud.create_user_register(db=db, registro=registro)
+        return services.create_user_register(registro=registro)
     except HTTPException as e:
         raise e  
-    except IntegrityError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Erro de chave primária: o ID já existe.")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
@@ -38,9 +38,9 @@ def userRegister(registro: schemas.RegistroCreate, db: Session = Depends(get_db)
 
 # endpoint para obter dados de usuário
 @app.get("/user/{user_id}", response_model=schemas.UserSchema)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int):
     try:
-        return crud.get_user(db=db, user_id=user_id)
+        return services.get_user(user_id=user_id)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -51,9 +51,9 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 # endpoint para deletar usuário
 @app.delete("/user/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int):
     try:
-        return crud.delete_user(db=db, user_id=user_id)
+        return services.delete_user(user_id=user_id)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -64,9 +64,9 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 # endpoint para fazer login
 @app.post("/login")
-def login(user_data: schemas.UserLoginSchema, Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
+def login(user_data: schemas.UserLoginSchema, Authorize: AuthJWT = Depends()):
     try:
-        return crud.user_login(db=db, user_data=user_data, Authorize=Authorize)
+        return services.user_login(user_data=user_data, Authorize=Authorize)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -77,9 +77,9 @@ def login(user_data: schemas.UserLoginSchema, Authorize: AuthJWT = Depends(), db
 
 # endpoint para deletar usuário por username
 @app.delete("/user/byname/{username}")
-def delete_user_byname(username: str, db: Session = Depends(get_db)):
+def delete_user_byname(username: str):
     try:
-        return crud.delete_user_byname(db=db, username=username)
+        return services.delete_user_byname(username=username)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -92,7 +92,7 @@ def delete_user_byname(username: str, db: Session = Depends(get_db)):
 @app.post("/logout")
 def logout(Authorize: AuthJWT = Depends()):
     try:
-        return crud.logout(Authorize=Authorize)
+        return services.logout(Authorize=Authorize)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -105,7 +105,7 @@ def logout(Authorize: AuthJWT = Depends()):
 @app.post("/refresh")
 def refresh(Authorize: AuthJWT = Depends()):
     try:
-        return crud.refresh(Authorize=Authorize)
+        return services.refresh(Authorize=Authorize)
     except HTTPException as e:
         raise e  
     except ValueError as e:
@@ -118,7 +118,7 @@ def refresh(Authorize: AuthJWT = Depends()):
 @app.get("/status")
 def server_status():
     try:
-        return crud.server_status()
+        return services.server_status()
     except HTTPException as e:
         raise e  
     except ValueError as e:
