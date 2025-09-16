@@ -10,19 +10,25 @@ import app.database as database
 
 
 # Cria um novo registro
-def create_user_register(registro: schemas.RegistroCreate):
+def create_user_register(registro: schemas.UserSchema):
     try:
+        print("chegou aqui")
         if database.get_user_by_email(registro.email):
             raise HTTPException(status_code=400, detail={"error": "Usuário já existe"})
 
+        print("passou aqui")
         new_user = database.create_user(registro.username, registro.email, registro.password)
         if not new_user:
             raise HTTPException(status_code=500, detail="Erro ao criar usuário")
 
         return new_user
+    except HTTPException as e:
+        print(e)
+        raise e
     except PsycopgError as e:
         raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 
@@ -30,12 +36,17 @@ def create_user_register(registro: schemas.RegistroCreate):
 def get_user(user_id: int):
     try:
         user = database.get_user_by_id(user_id)
+        print(user['username'])
         if not user:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         return user.to_dict()
+    except HTTPException as e:
+        print(e)
+        raise e
     except PsycopgError as e:
         raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 
@@ -47,9 +58,13 @@ def delete_user(user_id: int):
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         database.delete_user(user_id)
         return {"message": "Usuário de id {user_id} deletado com sucesso"}
+    except HTTPException as e:
+        print(e)
+        raise e
     except PsycopgError as e:
         raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 
@@ -60,21 +75,31 @@ def user_login(user_data: schemas.UserLoginSchema, Authorize: AuthJWT):
         if not user:
             raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-        password_encoded = user_data.password.encode("utf-8")
-        if not bcrypt.checkpw(password_encoded, user.password.encode("utf-8")):
-            raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        #### Precisa ver quanto ao bcrypt #### 
 
+        # print("aqui")
+        # password_encoded = user_data.password.encode("utf-8")
+        # hashed_password_from_db = user["password"].encode("utf-8")
+        # print("aqui2")
+        # if not bcrypt.checkpw(password_encoded, hashed_password_from_db):
+        #     raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+        print("aqui3")
         access_token = Authorize.create_access_token(
-            subject=user.id,
-            user_claims={"username": user.username, "email": user.email},
+            subject=user["id"],
+            user_claims={"username": user["username"], "email": user["email"]},
             fresh=True,
         )
-        refresh_token = Authorize.create_refresh_token(subject=user.id)
+        refresh_token = Authorize.create_refresh_token(subject=user["id"])
         return {"access_token": access_token, "refresh_token": refresh_token}
+    except HTTPException as e:
+        print(e)
+        raise e
     except PsycopgError as e:
-        raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro interno no servidor")
+        print(e)
+        raise e
 
 
 
@@ -86,9 +111,13 @@ def delete_user_byname(username: str):
             raise HTTPException(status_code=404, detail="User not found")
         database.delete_user(user.id)
         return {"message": "Usuário {username} deletado com sucesso"}
+    except HTTPException as e:
+        print(e)
+        raise e
     except PsycopgError as e:
         raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 # Faz logout do usuário
@@ -97,9 +126,11 @@ def logout(Authorize: AuthJWT):
         Authorize.jwt_required()
         user_id = Authorize.get_jwt_subject()
         return {"message": f"Usuário {user_id} saiu da seção"}
-    except PsycopgError as e:
-        raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
+    except HTTPException as e:
+        print(e)
+        raise e
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 
@@ -111,8 +142,6 @@ def refresh(Authorize: AuthJWT):
         current_user = Authorize.get_jwt_subject()
         new_token = Authorize.create_access_token(subject=current_user, fresh=False)
         return {"access_token": new_token}
-    except PsycopgError as e:
-        raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno no servidor")
 

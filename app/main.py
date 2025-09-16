@@ -1,17 +1,16 @@
 from fastapi import HTTPException, Depends, status
 from fastapi import FastAPI
 import app.schemas as schemas
-import Atividade1.app.services as services
-from app.database import get_db
+import app.services as services
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
-from database import init_db
-
-if __name__ == "__main__":
-    init_db()
-    print("Banco de dados inicializado!")
+from app.database import init_db
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
 
 # ver essa parada de autenticaçao melhor depois
 # Configuração do JWT
@@ -24,8 +23,8 @@ def get_config():
 
 
 # endpoint para inserir dados de registro
-@app.post("/register", response_model=schemas.UserSchema)
-def userRegister(registro: schemas.RegistroCreate):
+@app.post("/register", response_model=schemas.RegistroInserted)
+def userRegister(registro: schemas.UserSchema):
     try:
         return services.create_user_register(registro=registro)
     except HTTPException as e:

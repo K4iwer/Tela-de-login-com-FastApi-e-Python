@@ -3,6 +3,7 @@ from psycopg2 import OperationalError
 from contextlib import contextmanager
 from psycopg2.extras import RealDictCursor
 from typing import Optional, Dict, Any, List
+from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = "postgresql://postgres:42069@localhost:5432/api_db"
 
@@ -36,7 +37,7 @@ def init_db():
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
+        username TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
     );
@@ -50,9 +51,11 @@ def init_db():
 
 def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()
+    print("conectou")
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+            print("executou")
             return cur.fetchone()  # dict ou None
     finally:
         conn.close()
@@ -60,7 +63,7 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
 def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             return cur.fetchone()
     finally:
@@ -68,6 +71,7 @@ def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
 
 def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     conn = get_connection()
+    print("conectou a")
     try:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -77,6 +81,7 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
 
 def create_user(username: str, email: str, password: str) -> Dict[str, Any]:
     conn = get_connection()
+    print("chegou")
     try:
         with conn.cursor() as cur:
             cur.execute(
