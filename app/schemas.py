@@ -6,6 +6,11 @@ class UserSchema(BaseModel):
     email: str
     password: str
 
+class UserSchemaWithoutId(BaseModel):
+    username: str
+    email: str
+    password: str
+
 class RegistroCreate(BaseModel):
     pass
 

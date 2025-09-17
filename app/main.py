@@ -5,6 +5,7 @@ import app.services as services
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
 from app.database import init_db
+from app.blocklist import BLOCKLIST
 
 app = FastAPI()
 
@@ -12,19 +13,27 @@ app = FastAPI()
 def startup_event():
     init_db()
 
-# ver essa parada de autenticaçao melhor depois
 # Configuração do JWT
 class Settings(BaseModel):
-    authjwt_secret_key: str = "super-secret"  # coloque uma secret key forte
+    authjwt_secret_key: str = "super-secret" 
+    authjwt_token_location: set = {"cookies"}
+    authjwt_cookie_csrf_protect: bool = True
+    authjwt_blocklist_enabled: bool = True
+    authjwt_blocklist_token_checks: set = {"access", "refresh"}
 
 @AuthJWT.load_config
 def get_config():
     return Settings()
 
+# Callback para verificar se um JTI (identificador do token) está na blocklist
+@AuthJWT.token_in_denylist_loader
+def check_if_token_in_denylist(decrypted_token):
+    jti = decrypted_token["jti"]
+    return jti in BLOCKLIST
 
 # endpoint para inserir dados de registro
 @app.post("/register", response_model=schemas.RegistroInserted)
-def userRegister(registro: schemas.UserSchema):
+def userRegister(registro: schemas.UserSchemaWithoutId):
     try:
         return services.create_user_register(registro=registro)
     except HTTPException as e:
@@ -39,13 +48,13 @@ def userRegister(registro: schemas.UserSchema):
 @app.get("/user/{user_id}", response_model=schemas.UserSchema)
 def get_user(user_id: int):
     try:
-        return services.get_user(user_id=user_id)
+        return services.get_user(user_id)
     except HTTPException as e:
         raise e  
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro interno do servidor")
+        raise e
     
 
 # endpoint para deletar usuário
@@ -108,9 +117,9 @@ def refresh(Authorize: AuthJWT = Depends()):
     except HTTPException as e:
         raise e  
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro interno do servidor")
+        raise e
 
 
 # endpoint para verificar status do servidor
