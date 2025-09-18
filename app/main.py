@@ -1,5 +1,6 @@
 from fastapi import HTTPException, Depends, status
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import app.schemas as schemas
 import app.services as services
 from fastapi_jwt_auth import AuthJWT
@@ -8,6 +9,15 @@ from app.database import init_db
 from app.blocklist import BLOCKLIST
 
 app = FastAPI()
+
+# Configuração do CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],  # Origem do front
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_event():
@@ -25,7 +35,7 @@ class Settings(BaseModel):
 def get_config():
     return Settings()
 
-# Callback para verificar se um JTI (identificador do token) está na blocklist
+# Callback para ver se um JTI (identificador do token) tá na blocklist
 @AuthJWT.token_in_denylist_loader
 def check_if_token_in_denylist(decrypted_token):
     jti = decrypted_token["jti"]
@@ -70,7 +80,7 @@ def delete_user(user_id: int):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro interno do servidor")
     
 
-# endpoint para fazer login
+# endpoint para login
 @app.post("/login")
 def login(user_data: schemas.UserLoginSchema, Authorize: AuthJWT = Depends()):
     try:

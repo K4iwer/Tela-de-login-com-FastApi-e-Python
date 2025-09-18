@@ -78,7 +78,7 @@ def test_status():
 
 
 
-# test_register()
+test_register()
 # token = test_login()
 # test_get_user(9)
 # test_delete_user(9)

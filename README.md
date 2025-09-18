@@ -1,4 +1,4 @@
-# Passos para fazer a aplicação rodar:
+# Passos para fazer a aplicação rodar (back-end):
 
 Criar um ambiente virtual
 ```
@@ -44,3 +44,30 @@ uvicorn app.main:app --reload --port 8000
 
 (isso inicializa a API)
 
+# Passos para fazer a aplicação rodar (front-end):
+
+Entrar na pasta front
+
+```
+cd front/
+```
+
+Instalar as dependencias (necessário Node.js 18+)
+
+```
+npm install
+```
+
+Executar o front
+
+```
+npm run dev
+```
+
+A aplicação se inicia, por padrão, na porta 8080. Digite no navegador:
+
+```
+localhost:8080
+```
+
+Divirta-se.
