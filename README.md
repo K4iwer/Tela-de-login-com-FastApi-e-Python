@@ -44,6 +44,8 @@ uvicorn app.main:app --reload --port 8000
 
 (isso inicializa a API)
 
+E possível realizar testes individuais para cada endpoint pelo arquivo test_api.py
+
 # Passos para fazer a aplicação rodar (front-end):
 
 Entrar na pasta front
