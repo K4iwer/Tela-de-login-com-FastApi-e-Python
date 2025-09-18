@@ -1,7 +1,7 @@
-## Passos para fazer a aplicação rodar:
+# Passos para fazer a aplicação rodar:
 
 # Criar um ambiente virtual
-python -m venv venv
+```python -m venv venv```
 
 # Ativar (Windows)
 .\venv\Scripts\activate
