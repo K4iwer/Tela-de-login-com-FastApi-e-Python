@@ -31,7 +31,7 @@ Abrir a aplicação do docker no desktop
 Rodar no root do projeto:
 
 ```
-docker exec -it postgressql psql -U postgres -d api_db
+docker-compose up -d
 ```
 
 (isso inicializa o banco de dados postgres)
