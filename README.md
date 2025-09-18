@@ -1,7 +1,9 @@
 # Passos para fazer a aplicação rodar:
 
 Criar um ambiente virtual
-```python -m venv venv```
+```
+python -m venv venv
+```
 
 Ativar (Windows)
 ```.\venv\Scripts\activate```
@@ -11,7 +13,8 @@ Ativar (macOS/Linux)
 
 Instalar as bibliotecas necessárias:
 
-```pip install requests
+```
+pip install requests
 pip install fastapi
 pip install psycopg2
 pip install fastapi-jwt-auth
